@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_trigger"
+            android:title="Trigger" />
+        <item
+            android:id="@+id/nav_map"
+            android:icon="@drawable/ic_location"
+            android:title="@string/menu_people_around" />
+        <item
+            android:id="@+id/nav_people_details"
+            android:icon="@drawable/ic_peoples_details"
+            android:title="Nearby People Details" />
+        <item
+            android:id="@+id/nav_trusted_peoples"
+            android:icon="@drawable/ic_trust"
+            android:title="Trusted Peoples" />
+        <item
+            android:id="@+id/nav_help_requests"
+            android:icon="@drawable/ic_alert"
+            android:title="Help Requests" />
+    </group>
+
+    <item android:title="Others">
+        <menu>
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@drawable/ic_settings"
+                android:title="Account Settings" />
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/ic_exit"
+                android:title="Logout" />
+        </menu>
+    </item>
+
+</menu>
