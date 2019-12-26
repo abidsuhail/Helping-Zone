@@ -16,7 +16,6 @@ public class UserDetailsFetcher {
 
     public MutableLiveData<User> getUserFromDb(String uid) {
         DatabaseReference userRef = FirebaseRefs.getSingleRegUserDetailsOfUidNodeRef(uid);
-
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

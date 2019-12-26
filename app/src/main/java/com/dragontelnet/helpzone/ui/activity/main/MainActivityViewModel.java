@@ -34,4 +34,8 @@ public class MainActivityViewModel extends ViewModel {
     public void setNearbyPeoplesCount(int peoplesCount) {
         repository.setNearbyPeoplesCount(peoplesCount);
     }
+
+    public LiveData<Boolean> isRemoveLocSuccessful() {
+        return repository.isSuccessfull();
+    }
 }

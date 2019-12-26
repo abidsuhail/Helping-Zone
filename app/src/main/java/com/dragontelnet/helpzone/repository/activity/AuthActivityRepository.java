@@ -143,21 +143,23 @@ public class AuthActivityRepository {
 
     //setting device token in db,for FCM
     public MutableLiveData<String> setDeviceTokenToDb() {
-        final DatabaseReference regCurrentUserRef = FirebaseRefs
-                .getSingleRegUserDetailsOfUidNodeRef(CurrentFuser.getCurrentFuser().getUid());
+        if (CurrentFuser.getCurrentFuser() != null) {
+            final DatabaseReference regCurrentUserRef = FirebaseRefs
+                    .getSingleRegUserDetailsOfUidNodeRef(CurrentFuser.getCurrentFuser().getUid());
 
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        Log.w(TAG, "getInstanceId failed", task.getException());
-                        return;
-                    }
-                    String token = task.getResult().getToken();
-                    HashMap<String, Object> tokenMap = new HashMap<>();
-                    tokenMap.put("device_token", token);//setting fcm token to db
-                    regCurrentUserRef.updateChildren(tokenMap);
-                    mutableDeviceToken.setValue(token);
-                });
+            FirebaseInstanceId.getInstance().getInstanceId()
+                    .addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "getInstanceId failed", task.getException());
+                            return;
+                        }
+                        String token = task.getResult().getToken();
+                        HashMap<String, Object> tokenMap = new HashMap<>();
+                        tokenMap.put("device_token", token);//setting fcm token to db
+                        regCurrentUserRef.updateChildren(tokenMap);
+                        mutableDeviceToken.setValue(token);
+                    });
+        }
         return mutableDeviceToken;
     }
 

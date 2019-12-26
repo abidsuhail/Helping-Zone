@@ -40,12 +40,16 @@ public class TrustedPeoplesFragment extends Fragment {
     private final int PICK_CONTACT2 = 2;
     private final int PICK_CONTACT3 = 3;
     private final int PICK_CONTACT4 = 4;
+
     @BindView(R.id.fragment_trusted_phtv1)
     EditText phtv1;
+
     @BindView(R.id.fragment_trusted_phtv2)
     EditText phtv2;
+
     @BindView(R.id.fragment_trusted_phtv3)
     EditText phtv3;
+
     @BindView(R.id.fragment_trusted_phtv4)
     EditText phtv4;
     private String pickedContactNumber;
@@ -72,6 +76,7 @@ public class TrustedPeoplesFragment extends Fragment {
                         phtv2.setText(contact.getPhone2());
                         phtv3.setText(contact.getPhone3());
                         phtv4.setText(contact.getPhone4());
+                        saveToOfflineStorage(contact.getPhone1(), contact.getPhone2(), contact.getPhone3(), contact.getPhone4());
 
                         removeTrustedContactsObserver();
                     }
@@ -160,7 +165,11 @@ public class TrustedPeoplesFragment extends Fragment {
         String phtv3Str = phtv3.getText().toString().trim();
         String phtv4Str = phtv4.getText().toString().trim();
 
-        //add validation later
+        saveToOfflineStorage(phtv1Str, phtv2Str, phtv3Str, phtv4Str);
+
+    }
+
+    private void saveToOfflineStorage(String phtv1Str, String phtv2Str, String phtv3Str, String phtv4Str) {
         getViewModel().setTrustedContactsToDb(phtv1Str, phtv2Str, phtv3Str, phtv4Str)
                 .observe(this, new Observer<Boolean>() {
                     @Override
@@ -176,7 +185,6 @@ public class TrustedPeoplesFragment extends Fragment {
                         }
                     }
                 });
-
     }
 
     private boolean checkAccessContactsPermission() {

@@ -1,6 +1,6 @@
 package com.dragontelnet.helpzone.di.repository;
 
-import com.dragontelnet.helpzone.service.MyService;
+import com.dragontelnet.helpzone.service.MyBackgroundService;
 import com.dragontelnet.helpzone.ui.activity.main.MainActivityViewModel;
 import com.dragontelnet.helpzone.ui.fragments.home.HomeFragmentViewModel;
 import com.dragontelnet.helpzone.ui.fragments.map.MapFragmentViewModel;
@@ -20,7 +20,8 @@ public interface ReposComponent {
 
     void inject(PeoplesDetailsFragmentViewModel peoplesDetailsFragmentViewModel);
 
-    void inject(MyService myService);
+    void inject(MyBackgroundService myService);
 
     void inject(MainActivityViewModel mainActivityViewModel);
+
 }

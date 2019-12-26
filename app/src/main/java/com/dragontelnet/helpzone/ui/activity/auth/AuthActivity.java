@@ -69,7 +69,8 @@ public class AuthActivity extends AppCompatActivity {
 
     @OnClick(R.id.verify_otp_btn)
     public void verifyOtp() {
-        if (verificationIdObserver != null) {
+        String otpEtStr = otpEt.getText().toString();
+        if (verificationIdObserver != null && !TextUtils.isEmpty(otpEtStr.trim())) {
             getViewModel().getVerificationIdLiveData()
                     .observe(AuthActivity.this, verificationIdObserver);
         }

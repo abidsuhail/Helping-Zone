@@ -10,16 +10,19 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.MutableLiveData;
 
 import com.dragontelnet.helpzone.R;
 import com.dragontelnet.helpzone.ui.activity.main.MainActivity;
 
-public class MyService extends Service {
+public class MyBackgroundService extends Service {
 
     private static final int NOTIF_ID = 1;
     private static final String NOTIF_CHANNEL_ID = "Channel_Id";
-    private static final String TAG = "MyService";
+    private static final String TAG = "MyBackgroundService";
     public static boolean mRUNNING;
+    private String ACTION_STOP_SERVICE = "ACTION_STOP_SERVICE";
+    private static MutableLiveData<Boolean> isRunning = new MutableLiveData<>();
 
     @Override
     public void onCreate() {
@@ -30,7 +33,17 @@ public class MyService extends Service {
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand: in");
+
+        if (ACTION_STOP_SERVICE.equals(intent.getAction())) {
+            Log.d(TAG, "called to cancel service");
+            //stopSelf();
+            //stopForeground(true);
+
+            Intent intent1 = new Intent(getApplicationContext(), MyBackgroundService.class);
+            stopService(intent1);
+        }
         if (!mRUNNING) {
+            isRunning.setValue(true);
             //running service only one time
             startForegroundSer();
             mRUNNING = true;
@@ -60,15 +73,20 @@ public class MyService extends Service {
             manager.createNotificationChannel(channel);
         }
 
+        //PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf,PendingIntent.FLAG_CANCEL_CURRENT);
+
+        Intent stopSelf = new Intent(this, MyBackgroundService.class);
+        stopSelf.setAction(this.ACTION_STOP_SERVICE);
+        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf, PendingIntent.FLAG_CANCEL_CURRENT);
 
         startForeground(NOTIF_ID, new NotificationCompat.Builder(this,
                 NOTIF_CHANNEL_ID) // don't forget create a notification channel first
                 .setOngoing(true)
-                .setSmallIcon(R.drawable.ic_user_default)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText("Service is running background")
                 .setContentIntent(pendingIntent)
-                .addAction(0, "Stop Service", pendingIntent)
+                .addAction(0, "Stop Service", pStopSelf)
                 .build());
 
     }
@@ -77,6 +95,7 @@ public class MyService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: in");
+        isRunning.setValue(false);
     }
 
     @Override
@@ -85,5 +104,9 @@ public class MyService extends Service {
         //runs when user exit the app
         //start service again
         //check if user stop service then this is called or not
+    }
+
+    public static MutableLiveData<Boolean> getServiceStatus() {
+        return isRunning;
     }
 }

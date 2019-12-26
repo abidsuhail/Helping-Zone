@@ -5,11 +5,12 @@ import android.content.SharedPreferences;
 
 public class MySharedPrefs extends Application {
 
-    private static SharedPreferences startActivitysharedPreferences;
+    private static SharedPreferences startActivitySharedPreferences;
     private static SharedPreferences trustedNumbersSharedPrefs;
 
+    private static final String TAG = "MySharedPrefs";
     public static SharedPreferences getStartActivitySharedPrefs() {
-        return startActivitysharedPreferences;
+        return startActivitySharedPreferences;
     }
 
     public static SharedPreferences getTrustedNumbersSharedPrefs() {
@@ -19,10 +20,11 @@ public class MySharedPrefs extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        startActivitysharedPreferences = getApplicationContext()
+        startActivitySharedPreferences = getApplicationContext()
                 .getSharedPreferences("MyPref", 0); // 0 - for private mode;
 
         trustedNumbersSharedPrefs = getApplicationContext()
                 .getSharedPreferences("TrustedNoSharedRef", 0); // 0 - for private mode;
+
     }
 }

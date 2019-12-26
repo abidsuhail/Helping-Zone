@@ -27,32 +27,34 @@ import static com.dragontelnet.helpzone.RadomKeyGenerator.getRandomKey;
 
 public class RegistrationDetailsActivityRepository {
     private static final String TAG = "RegistrationDetailsRepo";
-    MutableLiveData<Boolean> isWriteSuccessMutable = new MutableLiveData<>();
-    MutableLiveData<String> imageUrlMutable = new MutableLiveData<>();
-    StorageReference storageRef;
-    String finalImageUrl;
+    private MutableLiveData<Boolean> isWriteSuccessMutable = new MutableLiveData<>();
+    private MutableLiveData<String> imageUrlMutable = new MutableLiveData<>();
+    private StorageReference storageRef;
+    private String finalImageUrl;
 
     public MutableLiveData<Boolean> writeUserToDbMutable(FirebaseUser firebaseUser, String userName, String imageUrl) {
-        User user = new User();
-        user.setPhone(firebaseUser.getPhoneNumber());
-        user.setUserName(userName);
-        user.setUid(firebaseUser.getUid());
-        user.setImageUrl(imageUrl);
-        DatabaseReference mUserRef = FirebaseRefs
-                .getSingleRegUserDetailsOfUidNodeRef(firebaseUser.getUid());
-        HashMap<String, Object> userMap = user.toMap();
-        mUserRef.updateChildren(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
+        if (firebaseUser != null) {
+            User user = new User();
+            user.setPhone(firebaseUser.getPhoneNumber());
+            user.setUserName(userName);
+            user.setUid(firebaseUser.getUid());
+            user.setImageUrl(imageUrl);
+            DatabaseReference mUserRef = FirebaseRefs
+                    .getSingleRegUserDetailsOfUidNodeRef(firebaseUser.getUid());
+            HashMap<String, Object> userMap = user.toMap();
+            mUserRef.updateChildren(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
 
-                if (task.isSuccessful()) {
-                    isWriteSuccessMutable.setValue(true);
-                } else {
-                    isWriteSuccessMutable.setValue(false);
+                    if (task.isSuccessful()) {
+                        isWriteSuccessMutable.setValue(true);
+                    } else {
+                        isWriteSuccessMutable.setValue(false);
+                    }
+
                 }
-
-            }
-        });
+            });
+        }
         return isWriteSuccessMutable;
     }
 

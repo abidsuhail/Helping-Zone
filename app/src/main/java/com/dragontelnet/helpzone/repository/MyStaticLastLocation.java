@@ -25,20 +25,22 @@ public class MyStaticLastLocation {
 
     public MutableLiveData<LatLng> getStaticLastLocation() {
 
-        final GeoFire geoFire = new GeoFire(FirebaseRefs.getAllUsersLocNodeRef());
-        FusedLocationProviderClient fusedLocationClient = LocationServices
-                .getFusedLocationProviderClient(context);
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(location -> {
-                    if (location != null) {
-                        GeoLocation geoLocation = new GeoLocation(location.getLatitude(), location.getLongitude());
-                        geoFire.setLocation(CurrentFuser.getCurrentFuser().getUid(), geoLocation);
-                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        if (CurrentFuser.getCurrentFuser() != null) {
+            final GeoFire geoFire = new GeoFire(FirebaseRefs.getAllUsersLocNodeRef());
+            FusedLocationProviderClient fusedLocationClient = LocationServices
+                    .getFusedLocationProviderClient(context);
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(location -> {
+                        if (location != null) {
+                            GeoLocation geoLocation = new GeoLocation(location.getLatitude(), location.getLongitude());
+                            geoFire.setLocation(CurrentFuser.getCurrentFuser().getUid(), geoLocation);
+                            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-                        locationMutableLiveData.setValue(latLng);
-                    }
+                            locationMutableLiveData.setValue(latLng);
+                        }
 
-                });
+                    });
+        }
         return locationMutableLiveData;
     }
 }

@@ -33,8 +33,7 @@ import com.dragontelnet.helpzone.MySharedPrefs;
 import com.dragontelnet.helpzone.R;
 import com.dragontelnet.helpzone.di.MyDaggerInjection;
 import com.dragontelnet.helpzone.firebase.CurrentFuser;
-import com.dragontelnet.helpzone.firebase.FirebaseRefs;
-import com.dragontelnet.helpzone.service.MyService;
+import com.dragontelnet.helpzone.service.MyBackgroundService;
 import com.dragontelnet.helpzone.ui.activity.registration.RegistrationDetailsActivity;
 import com.dragontelnet.helpzone.ui.fragments.helprequests.HelpRequestsFragment;
 import com.dragontelnet.helpzone.ui.fragments.home.HomeFragment;
@@ -43,8 +42,6 @@ import com.dragontelnet.helpzone.ui.fragments.map.MapsFragment;
 import com.dragontelnet.helpzone.ui.fragments.peoples.PeoplesDetailsFragment;
 import com.dragontelnet.helpzone.ui.fragments.trustedpeoples.TrustedPeoplesFragment;
 import com.firebase.geofire.GeoLocation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -67,21 +64,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final int LOCATION_PERMISSION_REQ_CODE = 1;
     public static final int APPLICATION_DETAILS_SETTINGS_REQ_CODE = 2;
     private static final String TAG = "MainActivity";
+
     @Inject
     public MapsFragment mapsFragment;
+
     @Inject
     public HomeFragment homeFragment;
+
     @Inject
     public PeoplesDetailsFragment peoplesFragment;
+
     @Inject
     public TrustedPeoplesFragment trustedFragment;
+
     @Inject
     public HelpRequestsFragment helpRequestsFragment;
+
+  /*  @Inject
+    public MyLiveLocationListener myLiveLocationListener;*/
+
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+
     @BindView(R.id.nav_view)
     NavigationView navigationView;
+
     @BindView(R.id.drawer_layout)
+
     DrawerLayout drawer;
     private TextView navUsername;
     private AlertDialog.Builder builder;
@@ -101,10 +110,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         initUi();
         askPermission();
-
-
         getViewModel().getUserDetails(CurrentFuser.getCurrentFuser().getUid()).observe(this, user -> {
-            Log.d(TAG, "onChanged: user is : " + user.getUserName());
             navUsername.setText(user.getUserName());
             navPhone.setText(user.getPhone());
             if (!user.getImageUrl().equals("")) {
@@ -120,9 +126,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         getViewModel().setNearbyPeoplesCount(locationsHashMap.size() - 1);
                     }
                 });
-
     }
-
 
     private void askPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -178,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onStop() {
         super.onStop();
         getHomeFragmentViewModel().removeTriggerListener();
+        Log.d(TAG, "onStop: in");
     }
 
     @Override
@@ -223,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void startBackgroundService() {
-        Intent intent = new Intent(this, MyService.class);
+        Intent intent = new Intent(this, MyBackgroundService.class);
         startService(intent);
     }
 
@@ -328,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 startActivity(intent);
                 break;
             case R.id.nav_logout:
-                stopService(new Intent(this, MyService.class));
+                stopService(new Intent(this, MyBackgroundService.class));
                 removeMyLocAndSignOut();
                 break;
         }
@@ -338,22 +343,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
     private void removeMyLocAndSignOut() {
-        FirebaseRefs.getAllUsersLocNodeRef()
-                .child(CurrentFuser.getCurrentFuser().getUid())
-                .removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+
+        getViewModel().isRemoveLocSuccessful().observe(this, new Observer<Boolean>() {
             @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
+            public void onChanged(Boolean isSuccessful) {
+                if (isSuccessful) {
                     MySharedPrefs.getStartActivitySharedPrefs().edit().clear().apply();//clearing activity db user info values
                     MySharedPrefs.getTrustedNumbersSharedPrefs().edit().clear().apply();//clearing trusted numbers db user info values
                     FirebaseAuth.getInstance().signOut();
                     finish();
+                    getViewModel().isRemoveLocSuccessful().removeObservers(MainActivity.this);
                 }
-
             }
         });
     }
-
     private void showHomeFragment() {
         if (fragmentManager.findFragmentByTag(HOMEF_TAG) != null) {
             fragmentManager.beginTransaction().show(fragmentManager.findFragmentByTag(HOMEF_TAG))

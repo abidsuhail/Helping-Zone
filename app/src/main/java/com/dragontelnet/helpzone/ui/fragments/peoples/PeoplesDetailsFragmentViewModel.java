@@ -18,18 +18,8 @@ public class PeoplesDetailsFragmentViewModel extends ViewModel {
 
     }
 
-   /* public LiveData<User> getUserNameByUidLiveData(String uid)
-    {
-        return repository.getUserNameByUidMutable(uid);
-    }*/
-
     public LiveData<Boolean> isPeoplesNearbyExists() {
         return repository.isPeoplesNearbyExists();
     }
-
-    /*public void sendFCMToDevice(String peopleUid)
-    {
-        repository.sendFCMToDevice(peopleUid);
-    }*/
 
 }

@@ -8,6 +8,10 @@
     android:padding="25dp"
     tools:context=".ui.activity.auth.AuthActivity">
 
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/helpingzoneicon" />
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -21,6 +25,7 @@
         android:id="@+id/phone_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:inputType="phone"
         android:hint="Enter Phone" />
 
     <EditText
@@ -28,7 +33,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:hint="Enter OTP" />
+        android:hint="Enter OTP"
+        android:inputType="number" />
 
     <Button
         android:id="@+id/send_otp_btn"

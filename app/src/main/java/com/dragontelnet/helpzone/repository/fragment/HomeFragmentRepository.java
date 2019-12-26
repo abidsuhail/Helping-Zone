@@ -33,8 +33,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -77,74 +75,56 @@ public class HomeFragmentRepository {
         this.context = context;
     }
 
-    private FirebaseUser getCurrentUser() {
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        return mAuth.getCurrentUser();
-    }
-
-/*    public MutableLiveData<LatLng> getAndSetStaticLastLocationMutable() {
-        final GeoFire geoFire = new GeoFire(FirebaseRefs.getAllUsersLocNodeRef());
-        FusedLocationProviderClient fusedLocationClient = LocationServices
-                .getFusedLocationProviderClient(context);
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(location -> {
-                    if (location != null) {
-                        GeoLocation geoLocation = new GeoLocation(location.getLatitude(), location.getLongitude());
-                        geoFire.setLocation(getCurrentUser().getUid(), geoLocation);
-                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-                        locationChangingMutableLiveData.setValue(latLng);
-                    }
-
-                });
-        return locationChangingMutableLiveData;
-    }*/
 
     public MutableLiveData<Boolean> setUserLocDetailsToDb(final Map.Entry<String, GeoLocation> entry, final Location myLoc) {
 
-        FirebaseRefs.getSingleRegUserDetailsOfUidNodeRef(getCurrentUser().getUid())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            //got user snapshot because i want current username ,now set user loc details node
-                            setUserDetailsNodeHashMap(entry, myLoc, dataSnapshot);
+        if (CurrentFuser.getCurrentFuser() != null && entry.getKey() != null) {
+            FirebaseRefs.getSingleRegUserDetailsOfUidNodeRef(CurrentFuser.getCurrentFuser().getUid())
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                //got user snapshot because i want current username ,now set user loc details node
+                                setUserDetailsNodeHashMap(entry, myLoc, dataSnapshot);
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                    }
-                });
-
+                        }
+                    });
+        }
         return isSuccessful;
+
     }
 
     private void setUserDetailsNodeHashMap(final Map.Entry<String, GeoLocation> entry, final Location myLoc, DataSnapshot dataSnapshot) {
-        final DatabaseReference mSinglePeopleDistanceRef = FirebaseRefs
-                .getNearbyUsersDistancesOfUidNodeRef(getCurrentUser().getUid())
-                .child(entry.getKey());
+        if (CurrentFuser.getCurrentFuser() != null && entry.getKey() != null) {
+            final DatabaseReference mSinglePeopleDistanceRef = FirebaseRefs
+                    .getNearbyUsersDistancesOfUidNodeRef(CurrentFuser.getCurrentFuser().getUid())
+                    .child(entry.getKey());
 
-        peopleLocation = new Location("");
-        peopleLocation.setLatitude(entry.getValue().latitude);
-        peopleLocation.setLongitude(entry.getValue().longitude);
+            peopleLocation = new Location("");
+            peopleLocation.setLatitude(entry.getValue().latitude);
+            peopleLocation.setLongitude(entry.getValue().longitude);
 
-        DecimalFormat df = new DecimalFormat("0.00");
-        float peopleDistance = myLoc.distanceTo(peopleLocation);
-        if (peopleDistance <= 500.0) {
-            //checking if by mistake other people distance from my distance is 500<x
+            DecimalFormat df = new DecimalFormat("0.00");
+            float peopleDistance = myLoc.distanceTo(peopleLocation);
+            if (peopleDistance <= 500.0) {
+                //checking if by mistake other people distance from my distance is 500<x
 
-            String peopleDistanceRoundOff = df.format(peopleDistance); //round off distance to 2 decimal places
-            PeopleLoc peopleLoc = getPeopleLoc(entry, peopleDistanceRoundOff, dataSnapshot);
-            mSinglePeopleDistanceRef.updateChildren(peopleLoc.toMap())
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            isSuccessful.setValue(true);
-                        } else {
-                            isSuccessful.setValue(false);
-                        }
-                    });
+                String peopleDistanceRoundOff = df.format(peopleDistance); //round off distance to 2 decimal places
+                PeopleLoc peopleLoc = getPeopleLoc(entry, peopleDistanceRoundOff, dataSnapshot);
+                mSinglePeopleDistanceRef.updateChildren(peopleLoc.toMap())
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                isSuccessful.setValue(true);
+                            } else {
+                                isSuccessful.setValue(false);
+                            }
+                        });
+            }
         }
     }
 
@@ -182,7 +162,7 @@ public class HomeFragmentRepository {
             trigger.setAudioLink(audioLink);
         }
         trigger.setBody(dataSnapshot.child("distance").getValue().toString());
-        trigger.setByUid(getCurrentUser().getUid());
+        trigger.setByUid(CurrentFuser.getCurrentFuser().getUid());
         trigger.setDate(RadomKeyGenerator.getDate());
         trigger.setTime(RadomKeyGenerator.getTime());
         trigger.setTimeStamp(RadomKeyGenerator.getTimeStamp());
@@ -193,7 +173,7 @@ public class HomeFragmentRepository {
         //sending fcm to all nearby devices in looping nearby loc lat lng node
         final DatabaseReference triggersRef = FirebaseRefs.getAllTriggersNodeRef();
 
-        FirebaseRefs.getNearbyUsersDistancesOfUidNodeRef(getCurrentUser().getUid())
+        FirebaseRefs.getNearbyUsersDistancesOfUidNodeRef(CurrentFuser.getCurrentFuser().getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -256,7 +236,7 @@ public class HomeFragmentRepository {
                 } else {
                     Trigger trigger = new Trigger();
                     trigger.setBody(dataSnapshot.child("body").getValue().toString());
-                    trigger.setByUid(getCurrentUser().getUid());
+                    trigger.setByUid(CurrentFuser.getCurrentFuser().getUid());
                     trigger.setTitle(dataSnapshot.child("title").getValue().toString());
                     Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
                     // Vibrate for 500 milliseconds
@@ -306,7 +286,7 @@ public class HomeFragmentRepository {
         final String peopleUid = userNode.getKey(); //key of node in distance ref
         if (peopleUid != null) {
             DatabaseReference distanceRef = FirebaseRefs
-                    .getNearbyUsersDistancesOfUidNodeRef(getCurrentUser().getUid())
+                    .getNearbyUsersDistancesOfUidNodeRef(CurrentFuser.getCurrentFuser().getUid())
                     .child(peopleUid);
 
             distanceRef.addListenerForSingleValueEvent(new ValueEventListener() {

@@ -19,42 +19,28 @@ public class HelpRequestsRepository {
     public HelpRequestsRepository() {
     }
 
-    public MutableLiveData<User> getUser(String uid) {
-        FirebaseRefs.getSingleRegUserDetailsOfUidNodeRef(uid)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
-                        mutableUser.setValue(user);
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-        return mutableUser;
-    }
 
     public MutableLiveData<Boolean> isRequestsExists() {
-        DatabaseReference ref = FirebaseRefs
-                .getSingleUserTriggersOfUidNodeRef(CurrentFuser.getCurrentFuser().getUid());
+        if (CurrentFuser.getCurrentFuser() != null) {
+            DatabaseReference ref = FirebaseRefs
+                    .getSingleUserTriggersOfUidNodeRef(CurrentFuser.getCurrentFuser().getUid());
 
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    requestsExists.setValue(true);
-                } else {
-                    requestsExists.setValue(false);
+            ref.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        requestsExists.setValue(true);
+                    } else {
+                        requestsExists.setValue(false);
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            }
-        });
+                }
+            });
+        }
         return requestsExists;
     }
 }

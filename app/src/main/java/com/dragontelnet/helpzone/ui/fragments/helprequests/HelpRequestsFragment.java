@@ -162,6 +162,8 @@ public class HelpRequestsFragment extends Fragment {
     }
 
     private void loadUsersProfilePic(String triggerUid, TriggerViewHolder holder) {
+
+        //not using UserDetailsFetcher class because for list,observer is not working properly
         FirebaseRefs.getSingleRegUserDetailsOfUidNodeRef(triggerUid)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override

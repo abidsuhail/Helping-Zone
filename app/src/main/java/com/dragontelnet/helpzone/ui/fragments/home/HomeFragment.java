@@ -31,8 +31,8 @@ import androidx.lifecycle.ViewModelProviders;
 import com.dragontelnet.helpzone.MySharedPrefs;
 import com.dragontelnet.helpzone.R;
 import com.dragontelnet.helpzone.model.TrustedContact;
-import com.dragontelnet.helpzone.service.MyService;
-import com.dragontelnet.helpzone.ui.activity.main.MainActivityViewModel;
+import com.dragontelnet.helpzone.service.MyBackgroundService;
+import com.dragontelnet.helpzone.service.MyBackgroundServiceViewModel;
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -47,7 +47,6 @@ import javax.inject.Singleton;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import butterknife.OnLongClick;
 import butterknife.OnTouch;
 
@@ -57,6 +56,7 @@ public class HomeFragment extends Fragment {
     private static final int RECORD_VOICE_REQ_CODE = 1;
     private static final int SEND_SMS_REQ_CODE = 2;
     private static final String TAG = "HomeFragment";
+
     @BindView(R.id.trigger_all_btn)
     Button sendBtn;
 
@@ -74,6 +74,10 @@ public class HomeFragment extends Fragment {
 
     @BindView(R.id.send_text_msg_btn)
     Button sendTextMsgBtn;
+
+    @BindView(R.id.stop_service_btn)
+    Button stopServiceBtn;
+
     private Location myLoc;
     private View root;
     private Observer<HashMap<String, GeoLocation>> hashMapObserver;
@@ -85,33 +89,62 @@ public class HomeFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView: in");
         root = inflater.inflate(R.layout.fragment_home, container, false);
         ButterKnife.bind(this, root);
+        return root;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
         showFabIcon();
+
         //onClick fab icon,start observing locations HashMap
         fab.setOnClickListener(v -> startObservingHashMap());
 
         //getting peoples count
         getPeoplesCount();
 
-        return root;
+        //checking service running status
+        getServiceViewModel().getServiceStatus().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isRunning) {
+                if (isRunning) {
+                    Log.d(TAG, "onChanged: service is running");
+
+                    stopServiceBtn.setText("STOP SERVICE");
+                    stopServiceBtn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            stopBackgroundService();
+                        }
+                    });
+
+                } else {
+                    Log.d(TAG, "onChanged: service stopped");
+                    stopServiceBtn.setText("START SERVICE");
+                    stopServiceBtn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            startBackgroundService();
+                        }
+                    });
+                }
+            }
+        });
+
     }
 
+    private MyBackgroundServiceViewModel getServiceViewModel() {
+        return ViewModelProviders.of(this).get(MyBackgroundServiceViewModel.class);
+    }
 
     private void showFabIcon() {
         if (getActivity() != null) {
             fab = getActivity().findViewById(R.id.fab);
             fab.setImageResource(R.drawable.ic_refresh);
             fab.show();
-        }
-    }
-
-    private void hideFabIcon() {
-        if (getActivity() != null) {
-            fab = getActivity().findViewById(R.id.fab);
-            fab.hide();
         }
     }
 
@@ -236,10 +269,17 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    @OnClick(R.id.stop_service_btn)
-    public void stopBackgroundService() {
+    private void stopBackgroundService() {
         if (getActivity() != null) {
-            getActivity().stopService(new Intent(getActivity(), MyService.class));
+            getActivity().stopService(new Intent(getActivity(), MyBackgroundService.class));
+            Toast.makeText(getActivity(), "service stopped...", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void startBackgroundService() {
+        if (getActivity() != null) {
+            getActivity().startService(new Intent(getActivity(), MyBackgroundService.class));
+            Toast.makeText(getActivity(), "service started...", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -322,7 +362,6 @@ public class HomeFragment extends Fragment {
             peoplesAround = stringGeoLocationHashMap.size() - 1; //getting nearby peoples count
             //getting size of hash map which was putted in onKeyEnter,onExit etc.
             for (final Map.Entry<String, GeoLocation> entry : stringGeoLocationHashMap.entrySet()) {
-                Log.d(TAG, "getPeoplesCount: " + entry.getKey());
                 if (entry.getKey() != null && entry.getValue() != null) {
                     if (!entry.getKey().equals(getCurrentUser().getUid())) {
                         //not pushing my location to distance node
@@ -336,7 +375,7 @@ public class HomeFragment extends Fragment {
             }
 
             //if by mistake peoples count is <0 (i.e negative),so handle it
-            //doing -1 because i don't want to include myself(i am also in count)
+            //doing size()-1 because i don't want to include myself(i am also in count)
             if ((peoplesAround >= 0)) {
                 peoplesCountTv.setText("" + (stringGeoLocationHashMap.size() - 1));
 
@@ -352,8 +391,6 @@ public class HomeFragment extends Fragment {
                 }
             }
 
-            String text = "Trigger Nearby Peoples";
-            sendBtn.setText(text);
         };
 
         disableRoundBtn();
@@ -369,10 +406,6 @@ public class HomeFragment extends Fragment {
         sendVoiceMsgBtn.setEnabled(false);
         sendVoiceMsgBtn.setBackgroundResource(R.drawable.round_button_disabled);
 
-        /*sendTextMsgBtn.setEnabled(false);
-        sendTextMsgBtn.setBackgroundResource(R.drawable.round_button_disabled);*/
-
-
     }
 
     private void enableRoundBtn() {
@@ -382,8 +415,6 @@ public class HomeFragment extends Fragment {
         sendVoiceMsgBtn.setEnabled(true);
         sendVoiceMsgBtn.setBackgroundResource(R.drawable.round_button);
 
-       /* sendTextMsgBtn.setEnabled(true);
-        sendTextMsgBtn.setBackgroundResource(R.drawable.round_button);*/
     }
 
     private void startObservingHashMap() {
@@ -422,10 +453,6 @@ public class HomeFragment extends Fragment {
     private HomeFragmentViewModel getViewModel() {
         return ViewModelProviders.of(this)
                 .get(HomeFragmentViewModel.class);
-    }
-
-    private MainActivityViewModel getMainActivityViewModel() {
-        return ViewModelProviders.of(this).get(MainActivityViewModel.class);
     }
 
     private void showSmsAlertDialog(TrustedContact trustedContact, String helpTextMsg) {
