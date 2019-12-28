@@ -247,7 +247,6 @@ public class HomeFragmentRepository {
                         //deprecated in API 26
                         v.vibrate(500);
                         Log.d(TAG, "onChildAdded: -oreo ");
-
                     }
 
                     try {

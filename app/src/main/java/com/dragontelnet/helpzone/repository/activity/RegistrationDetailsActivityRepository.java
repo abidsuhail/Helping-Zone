@@ -34,11 +34,14 @@ public class RegistrationDetailsActivityRepository {
 
     public MutableLiveData<Boolean> writeUserToDbMutable(FirebaseUser firebaseUser, String userName, String imageUrl) {
         if (firebaseUser != null) {
+
             User user = new User();
             user.setPhone(firebaseUser.getPhoneNumber());
             user.setUserName(userName);
             user.setUid(firebaseUser.getUid());
-            user.setImageUrl(imageUrl);
+            if (!imageUrl.equals("")) {
+                user.setImageUrl(imageUrl);
+            }
             DatabaseReference mUserRef = FirebaseRefs
                     .getSingleRegUserDetailsOfUidNodeRef(firebaseUser.getUid());
             HashMap<String, Object> userMap = user.toMap();

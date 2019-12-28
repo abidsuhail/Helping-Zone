@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final String HELPREQUESTSF_TAG = "helprequestsf";
     public static final int LOCATION_PERMISSION_REQ_CODE = 1;
     public static final int APPLICATION_DETAILS_SETTINGS_REQ_CODE = 2;
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "MainActivityAHAHA";
 
     @Inject
     public MapsFragment mapsFragment;
@@ -79,10 +79,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Inject
     public HelpRequestsFragment helpRequestsFragment;
-
-  /*  @Inject
-    public MyLiveLocationListener myLiveLocationListener;*/
-
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
@@ -126,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         getViewModel().setNearbyPeoplesCount(locationsHashMap.size() - 1);
                     }
                 });
+
+        getLifecycle().addObserver(new MyBackgroundService());
     }
 
     private void askPermission() {
@@ -218,10 +216,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Dialog dialog = builder.create();
             dialog.dismiss();
         }
-        fragmentManager
-                .beginTransaction()
-                .add(R.id.nav_host_fragment, homeFragment, HOMEF_TAG)
-                .commit();
+        if (fragmentManager != null) {
+            if (fragmentManager.findFragmentByTag(HOMEF_TAG) == null) {
+                fragmentManager
+                        .beginTransaction()
+                        .add(R.id.nav_host_fragment, homeFragment, HOMEF_TAG)
+                        .commit();
+            }
+        }
+
 
         startBackgroundService();
 
@@ -231,7 +234,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent intent = new Intent(this, MyBackgroundService.class);
         startService(intent);
     }
-
 
     private void openSettingsAlert() {
         builder = new AlertDialog.Builder(this);
@@ -359,6 +361,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
     private void showHomeFragment() {
         if (fragmentManager.findFragmentByTag(HOMEF_TAG) != null) {
+
             fragmentManager.beginTransaction().show(fragmentManager.findFragmentByTag(HOMEF_TAG))
                     .commit();
         } else {
@@ -492,5 +495,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragmentManager.beginTransaction().hide(fragmentManager.findFragmentByTag(HELPREQUESTSF_TAG))
                     .commit();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy: in");
     }
 }

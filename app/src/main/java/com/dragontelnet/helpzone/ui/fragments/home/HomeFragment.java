@@ -30,14 +30,14 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.dragontelnet.helpzone.MySharedPrefs;
 import com.dragontelnet.helpzone.R;
+import com.dragontelnet.helpzone.firebase.CurrentFuser;
 import com.dragontelnet.helpzone.model.TrustedContact;
 import com.dragontelnet.helpzone.service.MyBackgroundService;
 import com.dragontelnet.helpzone.service.MyBackgroundServiceViewModel;
+import com.dragontelnet.helpzone.ui.activity.main.MainActivityViewModel;
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -86,12 +86,21 @@ public class HomeFragment extends Fragment {
     private int i = 6;
     private Handler handler;
     private Runnable runnable;
+    private boolean isServiceRunning = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.fragment_home, container, false);
         ButterKnife.bind(this, root);
         return root;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        //getting peoples count
+        getPeoplesCount();
     }
 
     @Override
@@ -103,8 +112,6 @@ public class HomeFragment extends Fragment {
         //onClick fab icon,start observing locations HashMap
         fab.setOnClickListener(v -> startObservingHashMap());
 
-        //getting peoples count
-        getPeoplesCount();
 
         //checking service running status
         getServiceViewModel().getServiceStatus().observe(this, new Observer<Boolean>() {
@@ -113,6 +120,7 @@ public class HomeFragment extends Fragment {
                 if (isRunning) {
                     Log.d(TAG, "onChanged: service is running");
 
+                    isServiceRunning = true;
                     stopServiceBtn.setText("STOP SERVICE");
                     stopServiceBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -123,6 +131,7 @@ public class HomeFragment extends Fragment {
 
                 } else {
                     Log.d(TAG, "onChanged: service stopped");
+                    isServiceRunning = false;
                     stopServiceBtn.setText("START SERVICE");
                     stopServiceBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -151,7 +160,7 @@ public class HomeFragment extends Fragment {
     private void stopRecordingAudio() {
         getViewModel().stopRecordingAudio(getActivity(), peoplesAround);
         if (handler != null && runnable != null) {
-            sendVoiceMsgBtn.setText("Record Voice Message to send to nearby devices");
+            sendVoiceMsgBtn.setText("Record Voice Message to send to nearby devices\n\n(LONG PRESS)");
             handler.removeCallbacks(runnable);
             i = 6;
         }
@@ -180,6 +189,19 @@ public class HomeFragment extends Fragment {
     public void onStop() {
         super.onStop();
         stopRecordingAudio();
+
+        if (!isServiceRunning) {
+            //delete locations
+            //remove all observers
+            //remove my location from db when service is stopped + when apps exits
+            getMainActivityViewModel().isRemoveLocSuccessful().observe(this, new Observer<Boolean>() {
+                @Override
+                public void onChanged(Boolean isLocsRemoved) {
+
+                }
+            });
+
+        }
     }
 
     @OnLongClick(R.id.send_text_msg_btn)
@@ -195,11 +217,10 @@ public class HomeFragment extends Fragment {
                 }
             });
         } else {
+
             //now ask permission
             requestPermissions(new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_REQ_CODE);
         }
-
-
     }
 
     private boolean checkSendSmsPermission() {
@@ -348,11 +369,6 @@ public class HomeFragment extends Fragment {
         return trustedContact;
     }
 
-    private FirebaseUser getCurrentUser() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        return auth.getCurrentUser();
-    }
-
     private void getPeoplesCount() {
         final TextView peoplesCountTv = root.findViewById(R.id.peoples_count_tv);
 
@@ -363,7 +379,7 @@ public class HomeFragment extends Fragment {
             //getting size of hash map which was putted in onKeyEnter,onExit etc.
             for (final Map.Entry<String, GeoLocation> entry : stringGeoLocationHashMap.entrySet()) {
                 if (entry.getKey() != null && entry.getValue() != null) {
-                    if (!entry.getKey().equals(getCurrentUser().getUid())) {
+                    if (!entry.getKey().equals(CurrentFuser.getCurrentFuser().getUid())) {
                         //not pushing my location to distance node
                         //get entry except my entry to add child nodes to "nearby_users_loc_details" parent node
                         if (myLoc != null) {
@@ -484,5 +500,10 @@ public class HomeFragment extends Fragment {
 
                 break;
         }
+    }
+
+
+    private MainActivityViewModel getMainActivityViewModel() {
+        return ViewModelProviders.of(this).get(MainActivityViewModel.class);
     }
 }

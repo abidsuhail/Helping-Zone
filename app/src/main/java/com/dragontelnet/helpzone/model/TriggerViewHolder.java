@@ -18,6 +18,8 @@ public class TriggerViewHolder extends RecyclerView.ViewHolder {
     public CircleImageView circleImageView;
     public TextView userName, distance, date, time;
     public ImageButton playBtn;
+    public View itemView;
+
     //public MediaPlayer player;
 
     @BindView(R.id.help_requests_layout_dp)
@@ -38,6 +40,7 @@ public class TriggerViewHolder extends RecyclerView.ViewHolder {
     @BindView(R.id.help_requests_layout_time)
     TextView helpRequestsTime;
 
+
     public TriggerViewHolder(@NonNull View itemView) {
         super(itemView);
         ButterKnife.bind(this, itemView);
@@ -47,6 +50,7 @@ public class TriggerViewHolder extends RecyclerView.ViewHolder {
         playBtn = helpRequestsPlayBtn;
         date = helpRequestsDate;
         time = helpRequestsTime;
+        this.itemView = itemView;
         //player=null;
     }
 

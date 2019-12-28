@@ -27,15 +27,11 @@ public class MainActivityViewModel extends ViewModel {
         return userDetailsRepo.getUserFromDb(uid);
     }
 
-    public LiveData<String> getNearbyPeoplesCount() {
-        return repository.getNearbyPeoplesCount();
-    }
-
     public void setNearbyPeoplesCount(int peoplesCount) {
         repository.setNearbyPeoplesCount(peoplesCount);
     }
 
     public LiveData<Boolean> isRemoveLocSuccessful() {
-        return repository.isSuccessfull();
+        return repository.isLocRemovedSuccessfull();
     }
 }

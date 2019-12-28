@@ -1,5 +1,7 @@
 package com.dragontelnet.helpzone.ui.fragments.helprequests;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,7 +30,7 @@ import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.Query;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
@@ -95,7 +97,7 @@ public class HelpRequestsFragment extends Fragment {
     }
 
     private void populateList() {
-        Query query = FirebaseRefs.getSingleUserTriggersOfUidNodeRef(CurrentFuser
+        DatabaseReference query = FirebaseRefs.getSingleUserTriggersOfUidNodeRef(CurrentFuser
                 .getCurrentFuser()
                 .getUid());
 
@@ -138,6 +140,16 @@ public class HelpRequestsFragment extends Fragment {
                     }
                 }
 
+                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        //delete trigger
+                        if (holder.getAdapterPosition() > -1) {
+                            deleteTrigger(getRef(holder.getAdapterPosition()));
+                        }
+                        return true;
+                    }
+                });
                 setViewsInfo(trigger, holder);
             }
 
@@ -152,6 +164,25 @@ public class HelpRequestsFragment extends Fragment {
 
         recyclerView.setAdapter(adapter);
         adapter.startListening();
+    }
+
+    private void deleteTrigger(DatabaseReference currentTriggerRef) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage("Delete Request");
+        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //remove current specific trigger
+                currentTriggerRef.removeValue();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
     }
 
     private void setViewsInfo(Trigger trigger, TriggerViewHolder holder) {

@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -23,24 +22,30 @@ import com.dragontelnet.helpzone.model.User;
 import com.dragontelnet.helpzone.ui.activity.main.MainActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class RegistrationDetailsActivity extends AppCompatActivity {
 
     private static final String TAG = "RegistrationDetailsActi";
+
     @BindView(R.id.reg_iv)
-    ImageView profilePic;
+    CircleImageView profilePic;
+
     @BindView(R.id.reg_name_et)
     EditText regNameEt;
+
     private String userName;
     private Uri localImageUri;
     private Observer<String> imageUrlObserver;
     private ProgressDialog progressDialog;
+    private boolean isHasImage = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +75,12 @@ public class RegistrationDetailsActivity extends AppCompatActivity {
             @Override
             public void onChanged(User user) {
                 regNameEt.setText(user.getUserName());
+                if (!user.getImageUrl().equals("")) {
+                    Picasso.get()
+                            .load(user.getImageUrl())
+                            .into(profilePic);
+                    isHasImage = true;
+                }
             }
         });
     }

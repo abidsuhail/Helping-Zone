@@ -7,7 +7,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 
-import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.MutableLiveData;
 
 import com.dragontelnet.helpzone.firebase.CurrentFuser;
@@ -24,7 +23,7 @@ import java.util.Observable;
 import javax.inject.Singleton;
 
 @Singleton
-public class MyLiveLocationListener extends Observable implements LocationListener, LifecycleObserver {
+public class MyLiveLocationListener extends Observable implements LocationListener {
     private Context context;
     private GeoQuery geoQuery;
     //private GeoQueryEventListener geoQueryEventListener;

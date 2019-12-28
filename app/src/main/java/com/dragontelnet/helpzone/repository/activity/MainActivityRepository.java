@@ -24,28 +24,6 @@ public class MainActivityRepository {
 
     }
 
-    public MutableLiveData<String> getNearbyPeoplesCount() {
-        DatabaseReference ref = FirebaseRefs.getRootRef()
-                .child(MyConstants.USERS_LOC_NODE)
-                .child(CurrentFuser.getCurrentFuser().getUid())
-                .child("peoples_count_around");
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    String peoplesCount = dataSnapshot.child("no_of_peoples").getValue().toString();
-                    peoplesCountMutable.setValue(peoplesCount);
-                } else {
-                    peoplesCountMutable.setValue("0");
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-        return peoplesCountMutable;
-    }
 
     public void setNearbyPeoplesCount(int peoplesCount) {
         DatabaseReference ref = FirebaseRefs.getRootRef()
@@ -66,7 +44,8 @@ public class MainActivityRepository {
         });
     }
 
-    public MutableLiveData<Boolean> isSuccessfull() {
+    public MutableLiveData<Boolean> isLocRemovedSuccessfull() {
+        //removing loc
         if (CurrentFuser.getCurrentFuser() != null) {
             FirebaseRefs.getAllUsersLocNodeRef()
                     .child(CurrentFuser.getCurrentFuser().getUid())
